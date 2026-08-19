@@ -50,7 +50,7 @@ Simple pairwise correlations between individual audio features and popularity we
 - **Speechiness** and **instrumentalness** have the strongest negative associations — highly spoken-word or fully instrumental tracks tend to score lower on popularity.
 - All eight coefficients are statistically significant (p < 0.01), but the R² is very low. Statistical significance here reflects the large sample size (89,583 tracks) making even small effects detectable — it does not mean these features are practically powerful predictors of popularity.
 
-**Model validation:** Train and test R² are nearly identical (0.030 vs. 0.033), indicating the model is not overfit — it simply is not capturing much of what drives popularity.
+**Model validation:** Train and test R² are nearly identical (0.030 vs. 0.033), suggesting limited evidence of overfitting; the model simply explains little of the variation in popularity.
 
 **Limitations and causality:** This analysis identifies statistical *associations* between audio features and popularity. It does not establish that changing an audio feature would *cause* a track's popularity to change. Popularity is driven by many factors this dataset does not capture — marketing, playlist placement, artist fame, release timing, and more.
 
