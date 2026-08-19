@@ -112,7 +112,7 @@ Based on this analysis, audio features alone are weak predictors of popularity (
 
 ## 11. AI Recommendation Agent
 
-To extend the analysis beyond static regression/metrics work, this project also includes an AI agent layer that generates personalized recommendations using the cleaned dataset as its knowledge source.
+To extend the analysis beyond static regression/metrics work, this project also includes an AI agent layer that generates personalized recommendations using the cleaned dataset as its data source.
 
 **Architecture:**
 ```
@@ -142,7 +142,7 @@ User receives personalized, explained recommendations
 
 Both tests passed: no hallucinated tracks or artists appeared in either response.
 
-**Evaluation — comparing three approaches to the same request** (high energy, high danceability, darker mood):
+**Evaluation — comparing three approaches to the same request** (high energy, high danceability, darker mood). The baseline and data-driven results were generated with short, ad hoc Python snippets using `recommendation_tools.search_tracks` and pandas directly (not saved as a standalone script); the AI agent output is the actual `agent.py` result from Test 1 above:
 
 | Approach | Method | Result |
 |---|---|---|
@@ -178,4 +178,4 @@ python3 agent.py
 
 ## Skills Demonstrated
 
-Python, Pandas, NumPy, SciPy, scikit-learn, SQL, multiple linear regression, statistical inference (confidence intervals, hypothesis testing), data cleaning, exploratory data analysis, A/B test design, product metric design, LLM tool use / agent design, prompt engineering, AI guardrail design and testing
+Python, Pandas, NumPy, SciPy, scikit-learn, SQL, multiple linear regression, statistical inference (confidence intervals, hypothesis testing), data cleaning, exploratory data analysis, A/B test design, product metric design, LLM API Integration, Tool-Using AI Agents, Prompt Engineering, AI Guardrails
