@@ -32,6 +32,8 @@ Simple pairwise correlations between individual audio features and popularity we
 
 **Model:** `popularity ~ danceability + energy + valence + tempo + acousticness + loudness + instrumentalness + speechiness`
 
+*Implementation note: scikit-learn was used for the train/test split and generalization check (R² comparison below). Coefficients, standard errors, t-statistics, p-values, and 95% confidence intervals were computed directly via the OLS normal equations (NumPy) and SciPy's t-distribution — the same underlying calculation `statsmodels.OLS` performs, implemented manually rather than through that library.*
+
 | Feature | Coefficient | p-value | 95% CI |
 |---|---|---|---|
 | Danceability | +10.58 | <0.0001 | [9.65, 11.50] |
@@ -108,6 +110,48 @@ Based on this analysis, audio features alone are weak predictors of popularity (
 - The regression's low R² indicates substantial unexplained variance in popularity — future work could incorporate additional features (artist following size, release recency, playlist placements) if such data were available.
 - The A/B test and product decision sections are designed as a conceptual exercise, not an executed experiment — no real user data or live experiment was run.
 
+## 11. AI Recommendation Agent
+
+To extend the analysis beyond static regression/metrics work, this project also includes an AI agent layer that generates personalized recommendations using the cleaned dataset as its knowledge source.
+
+**Architecture:**
+```
+User preferences
+      ↓
+Claude (agent) interprets the request
+      ↓
+Agent calls Python tool functions (search_tracks, get_track_info, get_artist_stats)
+      ↓
+Tools query the cleaned dataset and return real candidate tracks
+      ↓
+Agent evaluates candidates and selects/explains final recommendations
+      ↓
+User receives personalized, explained recommendations
+```
+
+**Tools available to the agent:**
+- `search_tracks` — finds tracks closest to a target danceability/energy/valence profile, optionally filtered by favorite artists or minimum popularity
+- `get_track_info` — looks up details for a specific track
+- `get_artist_stats` — returns how often an artist appears in the dataset and their average audio profile
+
+**Guardrails:** The agent's system prompt explicitly instructs it to only recommend tracks returned by a tool call, never invent artists or songs from its own general knowledge, cite real audio-feature values when explaining a recommendation, avoid claiming any recommendation is objectively "best," and clearly state when it lacks the data to answer a request.
+
+**Guardrail testing:** Two test cases were run to check whether the agent respects these rules:
+1. A request for artists not present in the dataset (2hollis, Frost Children) — the agent correctly checked via `get_artist_stats`, reported they weren't found, and pivoted to audio-feature-based search instead of fabricating tracks by those artists.
+2. A request for "the top 5 most popular Taylor Swift songs of all time" — a request Claude could plausibly answer from its own training knowledge. The agent correctly declined to use outside knowledge, explained it lacked a tool for all-time popularity ranking, and offered legitimate alternative approaches using the tools it actually has.
+
+Both tests passed: no hallucinated tracks or artists appeared in either response.
+
+**Evaluation — comparing three approaches to the same request** (high energy, high danceability, darker mood):
+
+| Approach | Method | Result |
+|---|---|---|
+| **Baseline** | Most popular tracks overall, no personalization | Returns globally popular tracks (e.g., "Unholy," "La Bachata") regardless of requested mood/energy — ignores the actual preference |
+| **Data-driven** | Pure audio-feature similarity search (`search_tracks` alone, no AI) | Returns tracks well-matched on the numeric audio profile (e.g., "Save My Soul" by Groove Armada, "Move Slow" by One True God) |
+| **AI agent** | Audio-feature retrieval + Claude ranking/explanation | Returned largely the same top tracks as the data-driven approach, but added natural-language explanations tied to genre context and explicitly checked whether the user's stated favorite artists existed in the dataset first |
+
+**Finding:** the AI agent did not surface meaningfully different *candidate tracks* than the pure data-driven similarity search — both are ultimately constrained by the same underlying audio-feature distance calculation. The AI layer's main value-add was in **explanation quality and interaction handling**: checking artist availability proactively, articulating *why* a track fits in more natural terms, and gracefully handling an out-of-scope request (Test 2) rather than either failing silently or hallucinating an answer. This suggests that for this dataset and task, the LLM layer's contribution is primarily in personalization/communication rather than in improving the underlying recommendation accuracy itself — which is itself a legitimate, honest finding about where an AI layer adds value versus where it doesn't.
+
 ## Files
 
 - `dataset.csv` — raw Kaggle dataset (114,000 tracks)
@@ -116,15 +160,22 @@ Based on this analysis, audio features alone are weak predictors of popularity (
 - `dataset_cleaned.csv` — cleaned dataset (89,583 tracks)
 - `regression_results.csv` — regression coefficients, standard errors, p-values, confidence intervals
 - `eda_feature_distributions.png`, `eda_correlation_heatmap.png` — exploratory visualizations
+- `recommendation_tools.py` — tool functions used by the AI agent to retrieve real data
+- `agent.py` — the Claude-powered recommendation agent with tool use and guardrails
 
 ## How to Run
 
 ```bash
-pip install pandas numpy scipy scikit-learn matplotlib seaborn
+pip install pandas numpy scipy scikit-learn matplotlib seaborn anthropic
+
 python3 clean_and_eda.py
 python3 regression_analysis.py
+
+# For the AI agent (requires an Anthropic API key):
+export ANTHROPIC_API_KEY="your_key_here"
+python3 agent.py
 ```
 
 ## Skills Demonstrated
 
-Python, Pandas, NumPy, SciPy, scikit-learn, SQL, multiple linear regression, statistical inference (confidence intervals, hypothesis testing), data cleaning, exploratory data analysis, A/B test design, product metric design
+Python, Pandas, NumPy, SciPy, scikit-learn, SQL, multiple linear regression, statistical inference (confidence intervals, hypothesis testing), data cleaning, exploratory data analysis, A/B test design, product metric design, LLM tool use / agent design, prompt engineering, AI guardrail design and testing
