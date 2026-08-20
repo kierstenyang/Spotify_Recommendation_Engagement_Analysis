@@ -32,7 +32,7 @@ Simple pairwise correlations between individual audio features and popularity we
 
 **Model:** `popularity ~ danceability + energy + valence + tempo + acousticness + loudness + instrumentalness + speechiness`
 
-*Implementation note: scikit-learn was used for the train/test split and generalization check (R² comparison below). Coefficients, standard errors, t-statistics, p-values, and 95% confidence intervals were computed directly via the OLS normal equations (NumPy) and SciPy's t-distribution — the same underlying calculation `statsmodels.OLS` performs, implemented manually rather than through that library.*
+*Implementation note: scikit-learn was used for the train/test split and generalization check. Coefficients, standard errors, t-statistics, p-values, and 95% confidence intervals were computed manually using the OLS normal equations in NumPy and SciPy's t-distribution.*
 
 | Feature | Coefficient | p-value | 95% CI |
 |---|---|---|---|
@@ -142,7 +142,7 @@ User receives personalized, explained recommendations
 
 Both tests passed: no hallucinated tracks or artists appeared in either response.
 
-**Evaluation — comparing three approaches to the same request** (high energy, high danceability, darker mood). The baseline and data-driven results were generated with short, ad hoc Python snippets using `recommendation_tools.search_tracks` and pandas directly (not saved as a standalone script); the AI agent output is the actual `agent.py` result from Test 1 above:
+**Evaluation — comparing three approaches to the same request** (high energy, high danceability, darker mood):
 
 | Approach | Method | Result |
 |---|---|---|
@@ -150,7 +150,7 @@ Both tests passed: no hallucinated tracks or artists appeared in either response
 | **Data-driven** | Pure audio-feature similarity search (`search_tracks` alone, no AI) | Returns tracks well-matched on the numeric audio profile (e.g., "Save My Soul" by Groove Armada, "Move Slow" by One True God) |
 | **AI agent** | Audio-feature retrieval + Claude ranking/explanation | Returned largely the same top tracks as the data-driven approach, but added natural-language explanations tied to genre context and explicitly checked whether the user's stated favorite artists existed in the dataset first |
 
-**Finding:** the AI agent did not surface meaningfully different *candidate tracks* than the pure data-driven similarity search — both are ultimately constrained by the same underlying audio-feature distance calculation. The AI layer's main value-add was in **explanation quality and interaction handling**: checking artist availability proactively, articulating *why* a track fits in more natural terms, and gracefully handling an out-of-scope request (Test 2) rather than either failing silently or hallucinating an answer. This suggests that for this dataset and task, the LLM layer's contribution is primarily in personalization/communication rather than in improving the underlying recommendation accuracy itself — which is itself a legitimate, honest finding about where an AI layer adds value versus where it doesn't.
+**Finding:** the AI agent did not surface meaningfully different *candidate tracks* than the pure data-driven similarity search — both are ultimately constrained by the same underlying audio-feature distance calculation. The AI layer's main value-add was in **explanation quality and interaction handling**: checking artist availability proactively, articulating *why* a track fits in more natural terms, and gracefully handling an out-of-scope request (Test 2) rather than either failing silently or hallucinating an answer. This suggests that for this dataset and task, the LLM layer's contribution is primarily in interaction and communication rather than in improving the underlying recommendation accuracy itself — which is itself a legitimate, honest finding about where an AI layer adds value versus where it doesn't.
 
 ## Files
 
